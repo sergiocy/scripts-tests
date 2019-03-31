@@ -1,0 +1,157 @@
+
+
+/* ************************************** 
+DESCRIPCION:
+
+	MACRO (ASOCIADA A UN TRABAJO DE CAMPAÑAS DE MARKETING) PARA INSERTAR LOS REGISTROS 
+	CORRESPONDIENTES EN LAS TABLAS "MAESTRO_EXITO" Y "MAESTRO_MARGEN" EN CASO DE QUE 
+	NO ESTÉN YA (PARA EVITAR DUPLICADOS).
+
+	COMPRUEBA LOS PARÁMETROS (ID_CAMP, ID_ACC) INTRODUCIDOS EN CADA UNA DE LAS TABLAS POR SEPARADO Y SI
+	NO EXISTEN EN LAS MISMAS (EL PAR, QUE ES IDENTIFICADOR UNÍVOCO DE LA CAMPAÑA) INTRODUCE EL REGISTRO
+	CORRESPONDIENTE Y ORDENA LA TABLA.
+
+	MACRO QUE RECIBE VALORES COMO PARÁMETROS DE PROGRAMA Y LOS INSERTA EN DOS TABLAS. CIERTOS PARAMETROS EN UNA 
+	Y OTROS EN LA OTRA.
+ ************************************** */
+
+
+
+
+/* ******************************************** */
+/* LISTADO DE VARIABLES QUE SE DEBEN INCLUIR COMO PARAMETROS DEL PROGRAMA */
+/* ...CON ESTAS SE CREAN LOS REGISTROS DE ENTRADA A LAS TABLAS... */
+/* ******************************************** */
+*%put la campaña es &CAMP; /*codigo de la campania*/
+*%put la accion es &AC; /*codigo de la accion*/
+*%put el segmento es &SEG; /*segmento (particulares o empresas)*/
+*%put telemarketing &I_TMK; /*telemarketing*/
+*%put IND_OM es &I_OM; /*telemarketing*/
+*%put ID_EXITO es &ID_EX; /*exito*/
+*%put TARGET_IN es &TARG_INTELIG; /*Target inteligencia*/
+
+*%put ID_FAMILIA_CIAL es &ID_FAM; /*FAMILIA*/
+*%put ID_SUBFAM_CIAL es &ID_SUBFAM; /*SUBFAMILIA*/
+*%put ID_GRUPO_CIAL es &ID_GRUPO; /*GRUPO*/
+
+
+/* *********************************************************************** */
+/* ...VARIABLES PARA ALMACENAR EL NOMBRE DE LAS TABLAS DONDE INSERTAMOS... */
+/* *********************************************************************** */
+%LET LIB_TAB_EXITOS=WORK;
+%LET TAB_EXITOS=SIMULA_MAEST_EXI;/* LIBRERIA Y NOMBRE DE TABLA "MAESTRO_EXITO" */
+%LET LIB_TAB_MARGEN=WORK;
+%LET TAB_MARGEN=SIMULA_MAEST_MARG;/* LIBRERIA Y NOMBRE DE TABLA "MAESTRO_MARGEN" */
+
+
+
+
+
+
+/* ************* MACROS ************************************************ */
+
+/* ******************************************* */
+/* ...INSERTAMOS REGISTRO EN TABLA DE EXITOS... */
+/* ******************************************* */
+%MACRO INSERTA_EN_TABLA_EXITOS(libreria_in1, tabla_in1);
+DATA NUEVO_REG_EXITO;
+	ID_CAMPANYA="&CAMP.";
+	ID_ACC="&AC.";
+	SEGMENTO="&SEG.";
+	IND_TMK=&I_TMK.;
+	IND_OM=&I_OM.;
+	ID_EXITO=&ID_EX.;
+	TARGET_IN=&TARG_INTELIG.;	
+RUN;
+
+PROC APPEND BASE=&libreria_in1..&tabla_in1 DATA=NUEVO_REG_EXITO;
+RUN;
+
+PROC SORT DATA=&libreria_in1..&tabla_in1;
+	BY ID_CAMPANYA ID_ACC;
+RUN;
+%MEND INSERTA_EN_TABLA_EXITOS;
+
+
+
+/* ******************************************* */ 
+/* ...INSERTAMOS CAMPANYA EN TABLA DE FAMILIAS... */
+/* ******************************************* */ 
+%MACRO INSERTA_EN_TABLA_FAMILIAS(libreria_in2, tabla_in2);
+DATA NUEVO_REG_MARGEN;
+	ID_CAMPANYA="&CAMP.";
+	ID_ACC="&AC.";
+	ID_FAMILIA_CIAL=&ID_FAM.;
+	ID_SUBFAM_CIAL=&ID_SUBFAM.;
+	ID_GRUPO_CIAL=&ID_GRUPO.;	
+RUN;
+
+PROC APPEND BASE=&libreria_in2..&tabla_in2 DATA=NUEVO_REG_MARGEN;
+RUN;
+
+PROC SORT DATA=&libreria_in2..&tabla_in2;
+	BY ID_CAMPANYA ID_ACC;
+RUN;
+%MEND INSERTA_EN_TABLA_FAMILIAS;
+
+
+
+
+/* ******************************************* 
+...macro para VALIDAR campaña (VERIFICAMOS QUE NO ESTÉ YA EN LAS TABLAS)
+************************************************ */
+
+%MACRO VALIDA_CAMPANIA(libreria_in1, tabla_in1, libreria_in2, tabla_in2);
+
+/*...verificamos que no esté en la tabla de éxitos...*/ 
+PROC SQL;
+CREATE TABLE COMPARACION_EX AS
+SELECT t1.ID_CAMPANYA, t1.ID_ACC
+FROM &libreria_in1..&tabla_in1 t1
+WHERE t1.ID_CAMPANYA = "&CAMP." AND t1.ID_ACC = "&AC.";  
+QUIT;
+
+/*...si no está la insertamos y si está sacamos un mensaje en el LOG...*/
+%IF &sqlobs=0 %THEN %DO;
+		%PUT >>>>>>>> ;
+		%PUT >>>>>>>> INSERTAMOS CAMPAÑA EN TABLA "MAESTRO_EXITO";
+		%PUT >>>>>>>> ;
+		%INSERTA_EN_TABLA_EXITOS(&libreria_in1., &tabla_in1.);
+	%END; 
+%ELSE %DO;
+		%PUT >>>>>>>> ;
+		%PUT >>>>>>>> LA CAMPAÑA YA ESTA INCLUIDA EN LA TABLA "MAESTRO_EXITO";
+		%PUT >>>>>>>> ;
+	%END;
+
+/*...REPETIMOS EL PROCESO CON LA OTRA TABLA...*/
+/*...verificamos que no esté en la tabla de familias...*/ 
+PROC SQL;
+CREATE TABLE COMPARACION_FAM AS
+SELECT t1.ID_CAMPANYA, t1.ID_ACC
+FROM &libreria_in2..&tabla_in2 t1
+WHERE t1.ID_CAMPANYA = "&CAMP." AND t1.ID_ACC = "&AC.";  
+QUIT;
+
+/*...si no está la insertamos y si está sacamos un mensaje en el LOG...*/
+%IF &sqlobs=0 %THEN %DO;
+		%PUT >>>>>>>> ;
+		%PUT >>>>>>>> INSERTAMOS CAMPAÑA EN TABLA "MAESTRO_MARGEN";
+		%PUT >>>>>>>> ;
+		%INSERTA_EN_TABLA_FAMILIAS(&libreria_in2., &tabla_in2.);
+
+	%END; 
+%ELSE %DO;
+		%PUT >>>>>>>> ;
+		%PUT >>>>>>>> LA CAMPAÑA YA ESTA INCLUIDA EN LA TABLA "MAESTRO_MARGEN";
+		%PUT >>>>>>>> ;
+	%END;
+
+PROC SQL;
+	DROP TABLE COMPARACION_EX, COMPARACION_FAM;
+QUIT;
+
+%MEND VALIDA_CAMPANIA;
+
+%VALIDA_CAMPANIA(&LIB_TAB_EXITOS., &TAB_EXITOS., &LIB_TAB_MARGEN., &TAB_MARGEN.);
+

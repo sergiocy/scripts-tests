@@ -1,0 +1,46 @@
+
+########################################################################
+# Function to convert factor of categorical variables in binary variables.
+# The function take a data.frame of categorical variables and return another data.frame
+# in this way:
+#
+# Firstly we have a table like
+#  
+#	var1 var2 var3
+#	A	B    C	
+#	B	B    D	
+#	A	A    C
+#
+# and finally we will obtain a table like
+#
+#	var1_mod_A   var1_mod_B   var2_mod_A   var2_mod_B   var3_mod_C   var3_mod_D
+#	   1             0            0            1            1            0
+#          0             1            0            1            0            1
+#          1             0            1            0            1            0
+#
+##########################################################################
+
+binarizaMods <- function(df5){  
+  recodDf5 <- data.frame(id2=seq(1:dim(df5)[1]))
+  
+  for(i in 1:length(colnames(df5))){
+    
+    var <- colnames(df5)[i]
+    lev <- levels(as.factor(eval(parse(text=paste("df5$",var,sep="")))))
+    
+    nuevasVar <- data.frame(dimensiona=seq(1:dim(df5)[1]))
+    lbls <- c()
+    for(j in lev){
+      vectorBin <- ifelse(eval(parse(text=paste("df5$",var,sep="")))==j, 1, 0) 
+      nuevasVar <- cbind(nuevasVar, vectorBin)
+      lbls <- c(lbls, paste(var,"_mod_",j ,sep=""))
+    }
+    nuevasVar <- nuevasVar[,-1]
+    colnames(nuevasVar) <- lbls
+    
+    recodDf5 <- cbind(recodDf5, nuevasVar)
+  }
+  recodDf5 <- recodDf5[,-1]
+  return(recodDf5)
+}
+

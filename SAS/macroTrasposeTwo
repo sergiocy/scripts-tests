@@ -1,0 +1,98 @@
+
+/* ****************************************************************************************** */
+/* ******************************************************************************************** 
+DESCRIPTION:
+
+We supose we have a table where we have, for example; information about articles that have purchased 
+our customers and the cost of each.
+We would say, a data table like this:
+
+	ID_customer	ID_article	cost_article
+	23		1		2
+	23		4		5
+	45		1		2		
+	45		2		3
+	45		1		2
+
+This macro, traspose ID_article and sum the total cost paid for each customer, for each article
+and write the number of times that it has been bought (for each customer).
+For example, the result for the above table would be similar to this:
+
+	ID_customer	Article_1	Freq_art1	Article_2	Freq_art2	Article_4	Freq_art4
+	23		2		1		.		0		5		1
+	45		4		2		3		1		.		0
+
+
+
+VARIABLES USED:
+
+- "libreria_in"."Tabla_entrada" is the initial data table.
+- "libreria_out"."Tabla_salida" is the final table.
+- "var_columna" would be "ID_customer".
+- "var_fila" would be "ID_article".
+- "var_agrupacion" is the variable that we sum. In our case, "cost_article".  
+
+************************************************************************************************ */
+/* ********************************************************************************************* */
+
+
+
+
+%MACRO TRASPONER(libreria_in,Tabla_entrada,libreria_out, Tabla_salida, var_columna, var_fila, var_agrupacion);
+
+proc sort data= &libreria_in..&Tabla_entrada (KEEP= &var_columna &var_fila &var_agrupacion)
+          out=&Tabla_entrada._ord;
+        by &var_columna &var_fila;
+run;
+
+
+PROC SQL;
+	CREATE TABLE TABLA_AUX AS
+	SELECT t1.*, 1 AS CUENTA  
+	FROM &Tabla_entrada._ord t1; 
+QUIT;
+
+
+proc means data=TABLA_AUX  sum noprint nway;
+output out= AGR_&Tabla_entrada._ord  (drop =_FREQ_ _TYPE_) SUM(&var_agrupacion)=SUMA SUM(CUENTA)=FRECUENCIA_DE_PAGO;
+class &var_columna &var_fila;
+var &var_agrupacion;
+run;
+
+proc sort data= AGR_&Tabla_entrada._ord;
+   by &var_columna &var_fila;
+run;
+
+
+proc transpose data=AGR_&Tabla_entrada._ord (KEEP=ID_customer ID_article SUMA)  
+  out=MONTOS (DROP=_LABEL_ _NAME_)
+       prefix=Article_;
+       id  &var_fila;
+       BY &var_columna  ;
+run;
+
+
+proc transpose data=AGR_&Tabla_entrada._ord (KEEP=ID_customer ID_article FRECUENCIA_DE_PAGO)  
+  out=FRECUENCIAS (DROP=_LABEL_ _NAME_)
+       prefix=Freq_art;
+       id  &var_fila;
+       BY &var_columna  ;
+run;
+
+
+proc sql;
+create table &libreria_out..&Tabla_salida as
+select t1.*, t2.* from MONTOS t1
+left join FRECUENCIAS t2 on (t1.ID_customer=t2.ID_customer);
+run;
+
+
+PROC SQL;
+  DROP TABLE &Tabla_entrada._ord, AGR_&Tabla_entrada._ord, MONTOS, FRECUENCIAS, TABLA_AUX;
+QUIT;
+
+%MEND TRASPONER;
+
+ 
+
+
