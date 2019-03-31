@@ -1,0 +1,20 @@
+
+set_date(){
+    
+    [[ -d ../hive/$DATE ]] || mkdir -p ../hive/$DATE
+    [[ -d ../python/$DATE ]] || mkdir -p ../python/$DATE
+    [[ -d ../s3/$DATE ]] || mkdir -p ../s3/$DATE
+    
+    sed "s/CHANGEDATE\/CHANGEFULLDATE/$DATE\/$DATEFULL/g" ../python/full-rt-load.py > ../python/$DATE/full-rt-load-$DATE.py
+    
+    sed "s/CHANGEDATE/$DATE/g" ../s3/full-rt-move2current.sh > ../s3/$DATE/full-rt-move2current-$DATE.sh
+    sed -i "s/CHANGEFULLDATE/$DATEFULL/g" ../s3/$DATE/full-rt-move2current-$DATE.sh
+    
+    sed "s/CHANGEDATE\/CHANGEFULLDATE/$DATE\/current/g" ../hive/hive-full-rt-alter-location-remo.hql > ../hive/$DATE/hive-full-rt-alter-location-remo-$DATE.hql
+    #sed "s/CHANGEDATE\/CHANGEFULLDATE/$DATE\/$DATEFULL/g" ../hive/hive-full-rt-alter-location-remo.hql > ../hive/$DATE/hive-full-rt-alter-location-remo-$DATE.hql
+    #sed "s/CHANGEDATE\/CHANGEFULLDATE/$DATE\/$DATEFULL/g" ../hive/hive-full-rt-remo.hql > ../hive/$DATE/hive-full-rt-remo-$DATE.hql
+}
+
+DATE=$(date +%Y%m%d)
+DATEFULL=$(date +%Y%m%d%H%M)
+CHANGEDATE/CHANGEFULLDATE  ----> $DATE/$DATEFULL
