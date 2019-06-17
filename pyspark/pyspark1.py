@@ -3,11 +3,12 @@
 from pyspark.sql import SparkSession
 import pyspark.sql.functions as fn
 from pyspark.sql.types import *
+import pyspark.ml.feature as ft
 
 
 
 
-spark = SparkSession.builder.appName('abc').getOrCreate()
+spark = SparkSession.builder.appName('test').getOrCreate()
 
 
 '''
@@ -47,6 +48,7 @@ print(counting)
 
 ####
 #### ...working with csv dataset...
+'''
 scheme1 = StructType([StructField("custID", StringType(), True)
                     , StructField("gender", IntegerType(), True)
                     , StructField("state", IntegerType(), True)
@@ -69,7 +71,34 @@ fraud.groupby('gender').count().show()
 
 fraud.describe('gender').show()
 fraud.describe('numTrans').show()
+'''
+
+scheme1 = StructType([StructField("INFANT_ALIVE_AT_REPORT", IntegerType(), True)
+                    , StructField("BIRTH_PLACE", StringType(), True)
+                    , StructField("MOTHER_AGE_YEARS", IntegerType(), True)
+                    , StructField("FATHER_COMBINED_AGE", IntegerType(), True)
+                    , StructField("CIG_BEFORE", IntegerType(), True)
+                    , StructField("CIG_1_TRI", IntegerType(), True)
+                    , StructField("CIG_2_TRI", IntegerType(), True)
+                    , StructField("CIG_3_TRI", IntegerType(), True)
+                    , StructField("MOTHER_HEIGHT_IN", IntegerType(), True)
+                    , StructField("MOTHER_PRE_WEIGHT", IntegerType(), True)
+                    , StructField("MOTHER_DELIVERY_WEIGHT", IntegerType(), True)
+                    , StructField("MOTHER_WEIGHT_GAIN", IntegerType(), True)
+                    , StructField("DIABETES_PRE", IntegerType(), True)
+                    , StructField("DIABETES_GEST", IntegerType(), True)
+                    , StructField("HYP_TENS_PRE", IntegerType(), True)
+                    , StructField("HYP_TENS_GEST", IntegerType(), True)
+                    , StructField("PREV_BIRTH_PRETERM", IntegerType(), True)
+                    ])
+
+births = spark.read.csv('births_transformed.csv', header=True, schema=scheme1)
+
+births.show(5)
+
+featuresCreator = ft.VectorAssembler(inputCols=['HYP_TENS_GEST'], outputCol='new_feature')
 
 
+#featuresCreator.show(5)
 
 spark.stop()
