@@ -73,6 +73,8 @@ fraud.describe('gender').show()
 fraud.describe('numTrans').show()
 '''
 
+
+'''
 scheme1 = StructType([StructField("INFANT_ALIVE_AT_REPORT", IntegerType(), True)
                     , StructField("BIRTH_PLACE", StringType(), True)
                     , StructField("MOTHER_AGE_YEARS", IntegerType(), True)
@@ -100,5 +102,30 @@ featuresCreator = ft.VectorAssembler(inputCols=['HYP_TENS_GEST'], outputCol='new
 
 
 #featuresCreator.show(5)
+'''
+
+dt = '2019-06-16'
+
+df = spark.createDataFrame([
+    ('2019-10-15', 'z', 'null'), 
+    ('2019-06-16', 'z', 'null'),
+    ('2019-07-16', 'c', 'null'),
+    ('2019-06-17', 'null', 'null'),
+    ('2019-05-16', 'null', '4.0')],
+    ['low', 'high', 'normal'])
+
+df.show()
+
+
+df = df.withColumn('normal', fn.datediff(fn.to_date(df.low, 'yyyy-MM-dd'), fn.to_date(fn.lit(dt), 'yyyy-MM-dd')))
+
+#df.normal = fn.datediff(fn.to_date(df.low, 'yyyy-MM-dd'), fn.to_date(fn.lit(dt), 'yyyy-MM-dd'))
+
+#SELECT abs(datediff(date(low)), date(from_date))) as diff_days from df
+
+#df = spark.sql("""SELECT * FROM revenue.ds_looktobook_cumulative where ndo = 0""")
+
+df.show()
+
 
 spark.stop()
