@@ -1,0 +1,98 @@
+﻿/*
+* Ejemplos con Spark SQL realizados en la shell y en el notebook Zeppelin
+*/
+
+
+// Operaciones con DataFrames (realizados en el spark-shell)
+
+// Crear RDD de paises
+val lines = sc.textFile("file:///home/spark/datasets/countries.csv")
+val countries = lines.map( l => l.split(",") )
+
+
+// Crear dataframe a partir de un RDD de tuplas
+// Inferencia automática de tipos
+val rows = countries.map( l => (l(0), l(1), l(2), l(3)))
+val df = rows.toDF("code", "group", "region", "shortname")
+
+
+// ver resultado
+df.show
+df.printSchema
+
+
+// Crear dataframe a partir de un RDD de Row y un esquema
+// Importar las clases necesarias
+import org.apache.spark.sql.Row
+import org.apache.spark.sql.types.{StructType, StructField, StringType}
+
+val rows = countries.map(l => Row(l(0), l(1), l(2), l(3)))
+
+// Crear la estructura correspondiente:
+val schema = new StructType( Array(StructField("code", StringType, false),
+	StructField("group", StringType, false),
+	StructField("region", StringType, false), 
+	StructField("shortname", StringType, false)) )
+
+val df = sqlContext.createDataFrame(rows, schema)
+
+// ver resultado
+df.show
+df.printSchema
+
+// Ordenar 
+val ordered = df.orderBy($"shortname".desc)
+ordered.show
+
+// Agrupar
+val grouped = df.groupBy($"region").agg(Map("code" -> "count"))
+grouped.show
+
+// Guardar como parquet
+df.saveAsParquetFile("file:///home/spark/countries.parquet")
+
+// Registrar como tabla para poder realizar consultas SQL
+df.registerTempTable("countries")
+sqlContext.sql("select * from countries limit 10").show
+sqlContext.sql("select region,count(code) from countries group by region").show
+
+// -------------------------------------------------------------------------------------
+
+// Ejemplos realizados en el notebook Zeppelin
+
+// paragraph tipo %spark
+val rdd = sc.parallelize(List(1,2,3,4,5))
+val tuplas = rdd.map { t => (t, Array(t, t+1)) }
+val df = tuplas.toDF("numero", "lista")
+df.registerTempTable("mitabla")
+
+// paragraphs tipo %sql
+%sql
+select numero, lista as item from mitabla
+
+%sql
+select numero, explode(lista) as item from mitabla
+
+%sql
+select item, count(numero) as cuantos from mitabla 
+lateral view explode(lista) detail as item group by item
+
+// Ejemplos con tabla People
+// Paragraph spark
+val jsonData = sqlContext.jsonFile("file:///home/spark/mbit/datasets/people.json")
+jsonData.registerTempTable("people")
+jsonData.count
+
+// Ejemplo de lateral view en paragraph %sql
+%sql
+select tag, count(email) as users from people
+lateral view explode(tags) tabla2 as tag
+group by tag
+order by users desc
+
+
+// Ejemplo de formulario dinámico y visualización
+%sql
+select email, gender, favoriteFruit from people
+where gender = "${gender}"
+

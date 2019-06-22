@@ -1,0 +1,76 @@
+﻿
+/*
+* Ejemplos de uso de Spark realizados en spark-shell
+*/
+
+
+// Crear un rdd desde lista, operar y salvarlo a ficheros:
+val rdd1 = sc.parallelize(List(1,2,3,4))
+rdd1.map(x => x + 1).collect
+rdd1.saveAsTextFile("file:///home/spark/rdd1")
+
+
+
+// Ver particiones y reparticionar
+rdd1.partitions.length
+val rdd2 = rdd1.repartition(4)
+rdd2.saveAsTextFile("file:///home/spark/rdd2")
+
+
+
+// Crear un rdd desde fichero:
+val lines = sc.textFile("file:///home/spark/datasets/countries.csv")
+val countries = lines.map( l => l.split(",") )
+val words = lines.flatMap( l => l.split(",") )
+countries.count
+words.count
+
+val nonOECD = countries.filter( x => x(1).contains("nonOECD") )
+nonOECD.count
+
+
+
+// Leer fichero de PIBs
+val gdpLines = sc.textFile("file:///home/spark/datasets/gdp.csv")
+val gdp = gdpLines.map( l => l.split(","))
+
+
+
+// Operaciones sobre pares
+val countryPairs = countries.map( c => (c(0), c(3))) // country code, shortname
+val gdpPairs = gdp.map( g => (g(0), g(2)))           // country code, GDP
+
+val joined = countryPairs.join(gdpPairs)
+joined.count
+joined.take(2)
+
+val allPairs = countryPairs.cartesian(gdpPairs)
+allPairs.count
+allPairs.take(2)
+
+val countryRegions = countries.map( c => (c(2), c(3)))  // region, shortname
+countryRegions.first
+
+val regions = countryRegions.groupByKey
+regions.first
+
+// Número de paises por regiones
+val paisesPorRegion = countries.map( c => (c(2), 1) ).reduceByKey(_+_)
+
+
+
+// ---------------------------------
+// Funciones estadísticas
+
+val lines = sc.textFile("file:///home/spark/datasets/numbers.csv")
+val numbers = lines.map( l => l.toDouble )
+
+// una única estadística
+numbers.mean
+
+// todas
+val stats = numbers.stats()
+stats.variance
+stats.stdev
+
+
