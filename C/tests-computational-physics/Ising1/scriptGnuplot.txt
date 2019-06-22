@@ -1,0 +1,16 @@
+reset
+cd 'C:\Users\..\Ising1\'
+
+stats 'lado_red.txt' using 1 nooutput
+tamanio=int(STATS_min)
+
+set xlabel "posicion x del nodo"
+set ylabel "posicion y del nodo"
+set title "SISTEMA"
+set xtics 0.5,1,tamanio-0.5
+set ytics 0.5,1,tamanio-0.5
+set grid
+set size square 1,1
+plot[0:tamanio][0:tamanio] 'spines_sistema.txt' using 2:(($4>0) ? $3 : 1/0) with points pt 7 lt 7 title "spin +1",\
+		'spines_sistema.txt' using 2:(($4<0) ? $3 : 1/0) with points pt 7 lt 3 title "spin -1"
+		

@@ -1,0 +1,2 @@
+cd 'C:\Users\Usuario\Desktop\HPC\FISICA_COMPUTACIONAL\Ch4-Distribuciones\distrib\'
+plot 'frecuencias.txt'
