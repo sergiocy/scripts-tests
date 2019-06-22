@@ -208,7 +208,7 @@ def selecting_new_anomalies(spark, df, current_day, ctrl_day):
         df_before.createOrReplaceTempView("before")
         df_today.createOrReplaceTempView("today")
 
-        df_result = spark.sql( " SELECT today.* FROM today LEFT JOIN before ON today.id_flight = before.id_flight WHERE before.id_flight IS NULL " )
+        df_result = spark.sql( " SELECT today.* FROM today LEFT JOIN before ON today.id = before.id WHERE before.id IS NULL " )
         print(type(df_result))
 
 
@@ -276,7 +276,7 @@ if __name__ == '__main__':
     #### GET DATAFRAME FROM HIVE
     #### ...another function to get data through hive (to s3)
     logging.info(str(datetime.now()) + ' - SELECTION ANOMALIES PROCESS - ' + ' getting data from hive in output raw ')
-    table_name = "revenue.ds_anomaly_detection_output"
+    table_name = "hive_scheme.name_table"
     table_name_temp = "df_temp"
 
     #qry_hive = " select * from " + table_name_temp + " where dt > date('" + ini_date.strftime(format_date) + "') and dt <= date('" + end_date.strftime(format_date) + "') and type_reg = 'output_raw'" 
@@ -296,7 +296,7 @@ if __name__ == '__main__':
     ####
     #### GET DATAFRAME FROM FILE WITH/WITHOUT HEADER
     #### format df
-    #path_file = 'C:/sc-sync/projects/tests-python/proj-anomaly-detection/test.txt'
+    #path_file = 'C:/../test.txt'
     #name_fields = ['atr_od', 'mean', 'sd', 'coef', 'max', 'min']
     #sep = ","
     #df = get_df_from_file(path_file, name_fields, sep, True)
