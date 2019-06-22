@@ -7,7 +7,7 @@
 
 # ...funcion para cargar datos del fichero...
 loadData <- function(){
-  datos <- read.csv("C:/Users/scordoba/Desktop/upToDate_TrendingTopics/dataTagsTechnology.txt", sep=";", header=FALSE)
+  datos <- read.csv("C:/Users/../dataTagsTechnology.txt", sep=";", header=FALSE)
   #...formateamos fecha...
   datos$V2 <- as.Date(datos$V2)
   #datos$V3 <- tolower(datos$V3)

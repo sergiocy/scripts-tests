@@ -1,0 +1,19 @@
+
+#using presto
+print("Running Presto-Cli...")
+query1<-paste0("select * from table;")
+system(paste0("echo \"",query1,"\" > presto_query1.txt"))
+system("time presto-cli --catalog hive --schema revenue -f presto_query1.txt --output-format TSV | tr '\t' '|'  > /home/../query_res_elas1.txt")
+ancillar_local_df_2Y_1<-read.table("/home/../query_res_elas1.txt",sep = "|",header = FALSE)
+
+
+
+
+# with datatable
+print("Running Presto-Cli...")
+query1<-paste0("select * from table;")
+system(paste0("echo \"",query1,"\" > presto_query1.txt"))
+system("time presto-cli --catalog hive --schema revenue -f presto_query1.txt --output-format TSV | tr '\t' '|'  > /home/../query_res_elas1.txt")
+
+library("data.table", lib.loc="/mnt/tmp/rlib")
+ancillar_local_df_2Y_1<-fread("/home/../query_res_elas1.txt",sep = "|",header = FALSE)
