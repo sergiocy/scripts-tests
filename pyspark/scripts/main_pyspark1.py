@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 #import pyspark
 from pyspark.sql import SparkSession
@@ -6,9 +7,6 @@ from pyspark.sql.types import *
 import pyspark.ml.feature as ft
 
 
-
-
-spark = SparkSession.builder.appName('test').getOrCreate()
 
 
 '''
