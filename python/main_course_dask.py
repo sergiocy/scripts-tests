@@ -25,7 +25,7 @@ if __name__=='__main__':
     #print(data.head)
     #print(data.shape)
 
-    print("efficient ML course tests")
+    print("model-deployment course tests")
 
 
 

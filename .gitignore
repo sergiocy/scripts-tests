@@ -1,0 +1,25 @@
+.git/
+
+python/jupyter/*
+
+#### jupyter
+*/**/.ipynb_checkpoints/
+
+#### pycharm 
+*/**/.idea/
+
+#### python
+*/**/__pycache__/
+
+#### pyspark
+*/spark-warehouse/
+*/metastore_db/
+
+#### R
+*/**/.Rhistory
+
+#### C
+*/**/*.o
+*/**/*.exe
+
+
