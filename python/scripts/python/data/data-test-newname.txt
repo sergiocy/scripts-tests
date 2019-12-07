@@ -1,2 +1,0 @@
-OX OY tamX tamY 
-396 418 80 76
