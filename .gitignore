@@ -4,6 +4,7 @@ python/jupyter/*
 
 #### jupyter
 */**/.ipynb_checkpoints/
+*/**/*.ipynb
 
 #### pycharm 
 */**/.idea/

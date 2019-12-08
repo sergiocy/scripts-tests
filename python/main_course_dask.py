@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import os
-import sys
 import numpy as np
-import pandas as pd
-
-#from service.utils import create_logger
+import dask.array as da
+#import dask.visualize
 
 
 
@@ -15,18 +12,38 @@ import pandas as pd
 
 
 
+
 if __name__=='__main__':
 
-    #logger = create_logger(PATH_LOG_FILE)
-    #logger.info('path_data: ' + PATH_DATA)
-    #logger.info('path_log: ' + PATH_LOG_FILE)
+    print("dask course tests")
 
-    #data = pd.read_csv(PATH_DATA, sep=',', encoding='utf-8')
-    #print(data.head)
-    #print(data.shape)
+    ###########################################
+    ############## SECTION 2 ################### 
+    #### first tests... numpy comparison...
+    np_arr = np.random.randint(20, size = 20)
+    print(np_arr)
 
-    print("model-deployment course tests")
+    dask_arr = da.random.randint(20, size = 20, chunks = 5)
+    print(dask_arr)
 
+
+    # ...to view dask_arr we need... (similar to collect() in spark)...
+    print(dask_arr.compute())
+
+    # ...to get chunks...
+    print(dask_arr.chunks)
+
+    # ...from np to dask..
+    da_from_np = da.from_array(np_arr, chunks = 2)
+    print(da_from_np.compute())
+
+    # ...visualize graph... (...for this i must use jupyter or save as file...)
+    print(da_from_np.sum())
+    #da_from_np.visualize(filename='test.svg')
+    #da_from_np.visualize()
+
+    # ...some computes
+    print(da_from_np.mean().compute())
 
 
 
