@@ -45,6 +45,112 @@ if __name__=='__main__':
     # ...some computes
     print(da_from_np.mean().compute())
 
+    # ...operations...
+    print((dask_arr + 100).compute())
+    print((dask_arr * (-1)).compute())
+
+    # ...reductions...
+    print(dask_arr.sum().compute())
+
+    # ...matrix...
+    dask_ones = da.ones((10, 3), chunks = 2, dtype = int)
+    print(dask_ones.compute())
+
+    print(dask_ones.mean(axis = 0).compute())
+    print(dask_ones.mean(axis = 1).compute())
+
+    # ...slicing and broadcasting...
+    print(da.add(dask_arr, da_from_np).compute())
+
+
+    ###########################################
+    ############## SECTION 3 ###################
+    # ...lazy function...
+    def my_lazy_func(a, b):
+        a = a + 2
+        b = b + 10
+        # return a, b  # ...output of usual function..
+        yield a, b  # ...output of lazy function
+
+    print(my_lazy_func(1, 1))
+    print(next(my_lazy_func(1, 1)))
+
+
+    from dask import delayed, compute
+
+    def fun_1(x):
+        y = x**2
+        return y
+
+    final_result = []
+    for i in range(0, 10):
+        res = delayed(fun_1(i))
+        final_result.append(res)
+
+    print(final_result)
+    #print(da.from_array(np.asarray(final_result)).compute())
+
+    final_sum = delayed(sum)(final_result)
+    print(final_sum)
+    print(final_sum.compute())
+
+
+    final_result = []
+
+    @delayed
+    def fun_1(x):
+        y = x**2
+        return y
+
+    for i in range(0, 10):
+        final_result.append(delayed(fun_1(i)))
+    
+    final_sum = delayed(sum)(final_result)
+    print(final_sum)
+    print(final_sum.compute())
+
+
+
+    ################################################
+    ##### section 4: dataframes
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     
